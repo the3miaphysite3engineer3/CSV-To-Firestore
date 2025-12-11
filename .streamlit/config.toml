@@ -1,0 +1,3 @@
+# .streamlit/config.toml
+[theme]
+baseFontSize = 25 # Sets default for the whole app

@@ -5,13 +5,14 @@ import math
 import time
 from typing import Dict, Any
 
+
 # ---------------- Configuration ----------------
 COLLECTION_NAME = "attendance"
-ROWS_PER_PAGE = 50
-CSV_FILE_PATH = "God_is_among_us_edited.csv"
+ROWS_PER_PAGE = 10
+CSV_FILE_PATH = "George_edited.csv"
 
 ATTENDED_COLUMN = "Attended"
-NAME_COLUMN = "الاسم "
+NAME_COLUMN = "Name"
 
 # ---------------- Firestore Connection ----------------
 @st.cache_resource
@@ -76,7 +77,7 @@ def migrate_csv_to_firestore():
             val = str(cleaned_record[ATTENDED_COLUMN]).strip().lower()
             cleaned_record[ATTENDED_COLUMN] = "Yes" if val in ["yes", "نعم", "true", "1"] else "No"
 
-        doc_ref = collection_ref.document()  # auto-id
+        doc_ref = collection_ref.document(document_id=str(cleaned_record["ID"]))  # auto-id
         batch.set(doc_ref, cleaned_record)
 
         batch_counter += 1
@@ -109,7 +110,7 @@ def load_data() -> pd.DataFrame:
     """Load all docs from Firestore collection into a DataFrame indexed by doc id."""
     docs_list = []
     try:
-        docs = db.collection(COLLECTION_NAME).stream()
+        docs = db.collection(COLLECTION_NAME).order_by("ID", direction=firestore.Query.ASCENDING).stream()
     except Exception as e:
         st.error(f"Error reading Firestore collection: {e}")
         return pd.DataFrame()
@@ -220,7 +221,6 @@ def update_firestore_record():
 
 # ------------------- Streamlit UI -------------------
 st.set_page_config(page_title="Attendance Tracker", layout="wide")
-st.title("Attendance Tracker (Firestore Backend)")
 
 # Load the data (cached)
 df = load_data()
@@ -267,11 +267,10 @@ st.info(f"Showing rows {start_idx+1} to {end_idx} of {total_rows} (Page {page_nu
 if ATTENDED_COLUMN in page_df.columns:
     page_df[ATTENDED_COLUMN] = page_df[ATTENDED_COLUMN].astype(str).str.lower().isin(["yes", "نعم", "true", "1"])
 
-st.markdown("---")
 st.header("Attendance Records")
 
 # Columns to hide in the editor (if present)
-columns_to_hide = ["ID", "Whatsapp", "Note", "District"]
+columns_to_hide = ["ID", "Whatsapp", "Note", "District", "_doc_id"]
 
 # Build column_config for st.data_editor
 column_configuration = {}
@@ -288,6 +287,8 @@ if NAME_COLUMN in page_df.columns:
 # If Amount exists, show number column
 if "Amount" in page_df.columns:
     column_configuration["Amount"] = st.column_config.NumberColumn("Amount", format="%.2f")
+if "ID" in page_df.columns:
+    column_configuration["ID"] = st.column_config.NumberColumn("ID")
 
 # Add text column config for any remaining visible columns
 for col in page_df.columns:
@@ -305,6 +306,7 @@ edited_df = st.data_editor(
     key="data_editor_key",
     num_rows="fixed",
     use_container_width=True,
+
 )
 
 st.markdown("---")
