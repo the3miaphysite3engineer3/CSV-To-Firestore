@@ -247,9 +247,9 @@ if "page_number" not in st.session_state:
 # Sidebar - show navigation and controls
 st.sidebar.title("Navigation")
 col1, col2 = st.sidebar.columns(2)
-if col1.button("Previous"):
+if col1.button("<-"):
     st.session_state["page_number"] = max(1, st.session_state["page_number"] - 1)
-if col2.button("Next"):
+if col2.button("->"):
     st.session_state["page_number"] = min(total_pages, st.session_state["page_number"] + 1)
 
 # Show current page and allow jump-to via a small number_input as well (optional)
