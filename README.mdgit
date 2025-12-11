@@ -1,0 +1,1 @@
+"# CSV-To-Firestore"  initgit add README.mdgit commit -m "first commit"git branch -M maingit remote add origin https://github.com/the3miaphysite3engineer3/CSV-To-Firestore.gitgit push -u origin main
